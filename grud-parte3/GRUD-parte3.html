@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Document</title>
+  <style>
+     body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f2f2f2;
+      border-radius: 8px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    input, textarea, button {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    
+    ul{
+        padding-left: 50px;
+        justify-content: center;
+        align-items: center;
+        margin-right: 10%;
+    }
+
+    ul > .listaDedados {
+      background: white;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border-left: 4px solid #1da1f2;
+      list-style: none;
+      text-align: center;
+    }
+
+    .listaDedados strong {
+      display: block;
+      color: #1da1f2;
+    }
+
+    ul > .listaDedados button {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  
+  <form>
+    <input id="campoCriaPost" type="text" placeholder="Digite o seu post" />
+    <button type="submit">Postar</button>
+  </form>
+
+  <ul id="listaDePosts"></ul>
+
+  <script>
+    const miniRedeSocial = {
+      usuarios: [
+        {
+          username: 'omariosouto',
+        }
+      ],
+      posts: [
+        { id: 1, owner: 'omariosouto', content: 'meu primeiro tweet' }
+      ],
+       
+      readPosts() {
+        miniRedeSocial.posts.forEach(({ owner, content, id }) => {
+          miniRedeSocial.criaPost({ owner, content, id }, true);
+        });
+      },
+
+      criaPost(dados, htmlOnly = false) {
+        let novoId;
+
+        if (!htmlOnly) {
+          // Aqui criamos o post no array da memória
+          novoId = miniRedeSocial.posts.length + 1;
+          miniRedeSocial.posts.push({
+            id: novoId,
+            owner: dados.owner,
+            content: dados.content
+          });
+        } else {
+          // Quando estamos só lendo para exibir no HTML, usamos o ID que já veio
+          novoId = dados.id;
+        }
+
+        const listaDePost = document.querySelector('#listaDePosts');
+        const li = document.createElement('li');
+        li.className = 'listaDedados';
+
+        // 🚨🚨 [CORREÇÃO AQUI] 🚨🚨  
+        // Antes o ID era gerado, mas não era salvo no HTML, por isso o botão deletar não sabia qual post excluir.  
+        // Agora salvamos o ID diretamente no HTML com dataset.id. Assim conseguimos capturar esse ID ao clicar em "Deletar".
+        li.dataset.id = novoId;
+
+        li.innerHTML = `<strong> Novo Post: </strong> <span contenteditable> ${dados.content} </span> <button class="btn-delete">Deletar</button>`;
+        listaDePost.appendChild(li);     
+      },
+
+      apagaPost(id) {
+        // Usamos filter para remover o post da memória (array)
+        miniRedeSocial.posts = miniRedeSocial.posts.filter((postAtual) => postAtual.id !== id);
+        
+        // ✅ Explicação:
+        // Estava funcionando apenas no HTML (removendo o <li>), mas não removia o post da memória.
+        // Agora atualiza o array removendo o objeto com o ID clicado, mantendo o estado sincronizado.
+      },
+       atualizaContentDoPost(id, novoConteudo) {
+      // find() percorre os elementos do array e retorna o primeiro que satisfaz a condição
+        const postQueVaiSerAtualizado = miniRedeSocial.posts.find((post) => {
+        return post.id === Number(id); // Compara o id do post com o id fornecido
+    });
+
+    // Se encontrou o post, atualiza o conteúdo
+    if (postQueVaiSerAtualizado) {
+        postQueVaiSerAtualizado.content = novoConteudo;
+    }
+}
+    };
+
+
+    const meuForm = document.querySelector('form');
+
+    // READ inicial:
+    miniRedeSocial.readPosts();
+
+    // CREATE:
+    meuForm.addEventListener('submit', function criaPostController(infoDoEvento) {
+      infoDoEvento.preventDefault();
+
+      const campoCriaPost = document.querySelector('#campoCriaPost');
+
+      const novoPost = {
+        owner: miniRedeSocial.usuarios[0].username,
+        content: campoCriaPost.value
+      };
+    
+      miniRedeSocial.criaPost(novoPost);
+      campoCriaPost.value = ''
+    });
+
+    // DELETE:
+    document.querySelector('#listaDePosts').addEventListener('click', function (infoDoEvento) {
+      const elementoAtual = infoDoEvento.target;
+      const isBtnDeleteClick = elementoAtual.classList.contains('btn-delete');
+
+      if (isBtnDeleteClick) {
+        // 🚨🚨 [CORREÇÃO AQUI] 🚨🚨  
+        // Antes não tinha como saber qual post deletar no array, pois não passava o ID.
+        // Agora lemos o ID salvo no elemento <li> usando dataset.id, e transformamos em número.
+        const id = Number(elementoAtual.parentNode.dataset.id);
+
+
+        // e muito importante saber que no dia a dia vou ter dois lado de codigo, a manipulação do lado servidor e do lado html
+
+        //manipula o lado do ServerSide/Banco de dados/Arquivo/Fonte!
+        // Primeiro removemos da memória
+        miniRedeSocial.apagaPost(id);
+
+        // Manipula a View/o Ouput e etc...
+        // Depois removemos do HTML
+        elementoAtual.parentNode.remove();
+        
+
+        // ✅ Explicação:
+        // A exclusão precisa acontecer nas duas frentes: no HTML e na memória (array).
+        // Só deletar o HTML deixaria os dados "vivos" por trás. Só deletar da memória deixaria o post visível no site.
+      }
+    });
+
+
+     document.querySelector('#listaDePosts').addEventListener('input', function (infoDoEvento) {
+         const elementoAtual = infoDoEvento.target;
+         const id = elementoAtual.parentNode.contains('btn-delete');
+         miniRedeSocial.atualizaContentDoPost(id, elementoAtual.innerHTML) 
+         alert(`valor ${id}`)
+     })
+  </script>
+</body>
+</html>

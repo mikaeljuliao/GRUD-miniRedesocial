@@ -1,0 +1,162 @@
+<!--
+/*CRUD é a sigla para Create (criar), Read (ler), Update (atualizar)
+e Delete (excluir), e representa as quatro operações básicas que podem 
+ser realizadas em dados armazenados em um banco de dados ou sistema de armazenamento. 
+
+Detalhes:
+Create (Criar): Permite adicionar novos registros ou dados ao sistema.
+Read (Ler): Permite consultar ou recuperar dados existentes no sistema.
+Update (Atualizar): Permite modificar ou alterar dados já existentes.
+Delete (Excluir): Permite remover dados do sistema. 
+ */
+
+-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Document</title>
+  <style>
+     body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f2f2f2;
+      border-radius: 8px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    input, textarea, button {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    
+    ul{
+        padding-left: 50px;
+    }
+     ul > .listaDedados {
+      background: white;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border-left: 4px solid #1da1f2;
+      list-style: none;
+
+    }
+
+    .listaDedados strong {
+      display: block;
+      color: #1da1f2;
+    }
+     
+   
+  </style>
+</head>
+<body>
+  
+    <form>
+      <input id="campoCriaPost" type="text" placeholder="Digite o seu post" />
+      <button type="submit">Postar</button>
+    </form>
+
+      <!-- criei uma ul vazia pra adicionar os dados vindo do input-->
+    <ul id="listaDePosts"></ul>
+    
+    
+
+  <script>
+    console.log('olá pessoas!');
+
+    // Base de dados nossa
+    const miniRedeSocial = {
+    usuarios: [
+        {
+            username: 'omariosouto', // Cada usuário tem uma propriedade 'username'
+        }
+    ],
+    posts: [ // Array que armazena os posts (tweets)
+        {   
+            id: 1, // Identificador único do post (usado para atualizar ou deletar)
+            owner: 'omariosouto', // Dono do post (quem postou)
+            content: 'meu primeiro tweet' // Conteúdo do post
+        }
+    ],
+
+   /* como o array cria poste e o cria post html faz parte do mesmo modelo (a variavel  miniRedeSocial)
+   acaba duplicando os arrys e eu quero exibir apenas o html que ta puxando dos dados, então eu crio 
+   um novo parametro e atribuo ele como falso, e passo um if dizendo que tudo que não for htmlOnly
+   não cria em memoria 
+   */
+     criaPost(dados, htmlOnly = false) {
+        if(!htmlOnly)  {
+     // cria posts na memoria (array/objeto)
+        miniRedeSocial.posts.push({ // push() adiciona um novo elemento ao final do array 'posts'
+        id: miniRedeSocial.posts.length + 1, // Cria um novo ID baseado no tamanho atual da lista
+        owner: dados.owner, // Define o dono do post com base no objeto recebido
+        content: dados.content // Define o conteúdo do post
+          });
+        }
+    // cria post no Html
+      const listaDePost = document.querySelector('#listaDePosts');
+      const li = document.createElement('li');
+      li.className = 'listaDedados'
+      // e aqui eu atribui que vou pegar o valor digitado do campoCriaPost
+      li.innerHTML = ` <strong> Novo Post: </strong> ${dados.content}`;
+      listaDePost.appendChild(li);     
+}
+
+}
+
+
+    // criação da variavel formulario
+    const meuForm = document.querySelector('form');
+
+
+    // GRUD: [READ]:
+     miniRedeSocial.posts.forEach(( {owner, content} ) =>{
+         miniRedeSocial.criaPost({ owner: owner, content: content }, true); // passei que htmlOnly será true, fazendo com que exiba
+         
+     })
+
+
+     
+    // GRUD: [CREATE]:
+    // escutar evento
+    meuForm.addEventListener('submit', function criaPostController(infoDoEvento) {
+    // pasesei um evento de submit como escutador por que se passe de click iria ativar sempre que clicasse no form.dessa forma o subimit pega apenas no botão    
+  
+      infoDoEvento.preventDefault();
+    // preventDefault() impede o envio padrão permitindo fazer oque quiser com os dados
+
+// ai toda vez que o evento submit aconter, eu vou pegar oque foi digitado do input atravz da variavel campoCriaPost
+      const campoCriaPost = document.querySelector('#campoCriaPost');
+
+     
+      const novoPost = {
+      owner: miniRedeSocial.usuarios[0].username,
+      content: campoCriaPost.value
+};
+  
+  miniRedeSocial.criaPost(novoPost); // Aqui você cria o post de verdade
+
+
+      
+      // apos ja ter rodado, eu zero o valor do campo dizendo que ele vai receber vazio
+      campoCriaPost.value = ''
+
+   
+    });
+  </script>
+</body>
+</html>
